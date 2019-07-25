@@ -44,7 +44,7 @@ wth_summary_map = {
 }
 
 def blink():
-	btn.set_pixel(0,255,0)
+	btn.set_pixel(0,127,0)
         time.sleep(0.1)
         btn.set_pixel(0,0,0)
 
@@ -155,7 +155,15 @@ def info():
 	if(um2 and um2.group(1) and um2.group(2)):
 		text(0, 16*3, "up: " + str(um2.group(1) + " " + um2.group(2)), font_small)
 	elif(um1 and um1.group(1) and um1.group(2)):
-		text(0, 16*3, "up: " + str(um1.group(1)) + " hours and " + str(um1.group(2)) + " mins", font_small)
+		m = um1.group(1)
+		h = um1.group(2)
+		ms = "min"
+		hs = "hr"
+		if(m > 1):
+			ms = "mins"
+		if(h > 1):
+			hs = "hrs"
+		text(0, 16*3, "up: " + str(h) + " " + hs + " " + str(m) + " " + ms, font_small)
 	else:
 		text(0, 16*3, "up: (error)", font_small)
 
@@ -177,6 +185,9 @@ def handler(button):
 def handler(button):
 	do(blank)
 
-do(clock)
-signal.pause()
+try:
+	do(clock)
+	signal.pause()
+except:
+	exit()
 
