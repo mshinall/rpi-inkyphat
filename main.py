@@ -31,6 +31,8 @@ font_small = ImageFont.truetype("/usr/local/lib/python2.7/dist-packages/font_sou
 btn.set_pixel(0, 0, 0)
 
 is_busy = False
+last_func = None
+
 wth_summary_map = {
 	"snow":                "Snow",
 	"sleet":               "Sleet",
@@ -104,12 +106,14 @@ def free():
 	else:
 		return True
 def do(func):
+	global last_func
 	if(busy()):
 		#print("busy: " + func.__name__)
 		return
 	#print("free: " + func.__name__)
 	blink()
 	btn.set_pixel(0, 0, 127)
+	last_func = func
 	func()
 	btn.set_pixel(0, 0, 0)
 	free()
@@ -185,16 +189,23 @@ def image():
 	global zc, zz
 	m = Image.new("P", (ink.WIDTH, ink.HEIGHT))
 	d = ImageDraw.Draw(m)
-	i = random.choice([1, 2, 4])
+	#i = random.choice([1, 2, 4, 8, 16, 32, 64])
+	i = random.randint(1, 52)
 	t = 212
 	r = 104
-	for a in range(0, (t/i)):
-		x1 = a*i
+	for a in range(0, (t/i)+1):
+		x1 = (a*i)+1
 		x2 = x1 + i
-		for b in range(0, (104/i)-1):
-			y1 = b*i
+		if(x2 > t):
+			x2 = x1 + t - t/i
+		for b in range(0, (104/i)+1):
+			y1 = (b*i)+1
 			y2 = y1 + i
-			d.rectangle([x1, y1, x2, y2], fill=random.choice([ink.WHITE, ink.BLACK, ink.RED]), outline=None, width=0)
+			if(y2 > r):
+				y2 = y1 + r - r/i
+			color = random.choice([ink.WHITE, ink.BLACK, ink.RED])
+			d.rectangle([x1, y1, x2, y2], fill=color, outline=None, width=0)
+
 	ink.set_image(m)
         ink.show()
 
@@ -216,8 +227,11 @@ def handler(button):
 	do(blank)
 
 try:
+	#do(clock)
+	do(image)
+	time.sleep(300)
 	while True:
-		do(clock)
+		do(last_func)
 		time.sleep(300)
 	#signal.pause()
 except:
