@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import time
@@ -189,8 +189,8 @@ def image():
 	global zc, zz
 	m = Image.new("P", (ink.WIDTH, ink.HEIGHT))
 	d = ImageDraw.Draw(m)
-	#i = random.choice([1, 2, 4, 8, 16, 32, 64])
-	i = random.randint(1, 52)
+	i = random.choice([1, 2, 4, 8, 16, 32, 52])
+	#i = random.randint(1, 52)
 	t = 212
 	r = 104
 	for a in range(0, (t/i)+1):
@@ -209,6 +209,37 @@ def image():
 	ink.set_image(m)
         ink.show()
 
+def mandel():
+	palette = [ink.WHITE, ink.RED, ink.BLACK]
+	m = Image.new("P", (ink.WIDTH, ink.HEIGHT))
+	d = ImageDraw.Draw(m)
+    	h = ink.HEIGHT
+	w = ink.WIDTH
+	for py in range(h):
+		for px in range(w):
+			x0 = interp(px, [0, w], [-2.5, 1.0])
+			y0 = interp(py, [0, h], [-1.0, 1.0])
+			x = 0.0
+			y = 0.0
+			i = 0
+			max = 100
+			rs = 0
+			iis = 0
+			zs = 0
+			color = None
+			while(rs + iis <= 4 and i < max):
+				x = rs - iis + x0
+				y = zs - rs - iis + y0
+				rs = x*x
+				iis = y*y
+				zs = (x + y)*(x + y)
+				i = i + 1
+			if i > max / 2:
+				d.point([px, py], fill=ink.BLACK)			
+			else:
+				d.point([px, py], fill=ink.WHITE)
+	ink.set_image(m)
+        ink.show()
 
 @btn.on_hold(btn.BUTTON_E, hold_time=1)
 def handler(button):
@@ -224,11 +255,12 @@ def handler(button):
 
 @btn.on_hold(btn.BUTTON_A, hold_time=1)
 def handler(button):
-	do(blank)
+	do(mandel)
 
 try:
 	#do(clock)
-	do(image)
+	#do(image)
+	do(mandel)
 	time.sleep(300)
 	while True:
 		do(last_func)
