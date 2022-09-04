@@ -13,6 +13,8 @@
 
 
 function start() {
+	cd /home/pi/rpi-inkyphat
+	git pull origin master
 	/home/pi/rpi-inkyphat/main.py > /home/pi/main.log 2>&1 &
 	echo $! > /home/pi/main.pid
 }
