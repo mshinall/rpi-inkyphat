@@ -186,7 +186,7 @@ def info():
 	show()
 
 def image():
-	global zc, zz
+	global zc, zz, img
 	m = Image.new("P", (ink.WIDTH, ink.HEIGHT))
 	d = ImageDraw.Draw(m)
 	i = random.choice([1, 2, 4, 8, 16, 32, 52])
@@ -206,10 +206,11 @@ def image():
 			color = random.choice([ink.WHITE, ink.BLACK, ink.RED])
 			d.rectangle([x1, y1, x2, y2], fill=color, outline=None, width=0)
 
-	ink.set_image(m)
-        ink.show()
+	img = m
+        show()
 
 def mandel():
+	global img
 	palette = [ink.WHITE, ink.RED, ink.BLACK]
 	m = Image.new("P", (ink.WIDTH, ink.HEIGHT))
 	d = ImageDraw.Draw(m)
@@ -238,8 +239,8 @@ def mandel():
 				d.point([px, py], fill=ink.BLACK)			
 			else:
 				d.point([px, py], fill=ink.WHITE)
-	ink.set_image(m)
-        ink.show()
+	img = m
+        show()
 
 @btn.on_hold(btn.BUTTON_E, hold_time=1)
 def handler(button):
