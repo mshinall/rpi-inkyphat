@@ -261,7 +261,8 @@ def handler(button):
 try:
 	#do(clock)
 	#do(image)
-	do(mandel)
+	#do(mandel)
+	do(info)
 	time.sleep(300)
 	while True:
 		do(last_func)
