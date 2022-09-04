@@ -186,9 +186,9 @@ def info():
 	show()
 
 def image():
-	global zc, zz, img
-	m = Image.new("P", (ink.WIDTH, ink.HEIGHT))
-	d = ImageDraw.Draw(m)
+	global zc, zz, img, draw
+	img = Image.new("P", (ink.WIDTH, ink.HEIGHT))
+	draw = ImageDraw.Draw(img)
 	i = random.choice([1, 2, 4, 8, 16, 32, 52])
 	#i = random.randint(1, 52)
 	t = 212
@@ -204,16 +204,15 @@ def image():
 			if(y2 > r):
 				y2 = y1 + r - r/i
 			color = random.choice([ink.WHITE, ink.BLACK, ink.RED])
-			d.rectangle([x1, y1, x2, y2], fill=color, outline=None, width=0)
+			draw.rectangle([x1, y1, x2, y2], fill=color, outline=None, width=0)
 
-	img = m
         show()
 
 def mandel():
 	global img
 	palette = [ink.WHITE, ink.RED, ink.BLACK]
-	m = Image.new("P", (ink.WIDTH, ink.HEIGHT))
-	d = ImageDraw.Draw(m)
+	img = Image.new("P", (ink.WIDTH, ink.HEIGHT))
+	draw = ImageDraw.Draw(m)
     	h = ink.HEIGHT
 	w = ink.WIDTH
 	for py in range(h):
@@ -236,10 +235,9 @@ def mandel():
 				zs = (x + y)*(x + y)
 				i = i + 1
 			if i > max / 2:
-				d.point([px, py], fill=ink.BLACK)			
+				draw.point([px, py], fill=ink.BLACK)			
 			else:
-				d.point([px, py], fill=ink.WHITE)
-	img = m
+				draw.point([px, py], fill=ink.WHITE)
         show()
 
 @btn.on_hold(btn.BUTTON_E, hold_time=1)
