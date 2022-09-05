@@ -3,7 +3,7 @@
 
 import time
 from inky import InkyPHAT
-from Pillow import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 import inkyphat
 from time import localtime, strftime
 import buttonshim as btn
@@ -15,19 +15,22 @@ import geocoder
 import requests
 from bs4 import BeautifulSoup
 import random
+import logging
+
+logging.basicConfig(level=logging.ERROR)
 
 ink = InkyPHAT("black")
 ink.set_border(ink.WHITE)
 
-#print("w:" + str(ink.WIDTH) + " h:" + str(ink.HEIGHT))
+logging.debug("w:" + str(ink.WIDTH) + " h:" + str(ink.HEIGHT))
 
 img = Image.new("P", (ink.WIDTH, ink.HEIGHT))
 draw = ImageDraw.Draw(img)
 
 # Load the FredokaOne font
 #font = ImageFont.truetype(inkyphat.fonts.FredokaOne, 22)
-font_large = ImageFont.truetype("/usr/local/lib/python2.7/dist-packages/font_source_sans_pro/files/SourceSansPro-Black.ttf", 22)
-font_small = ImageFont.truetype("/usr/local/lib/python2.7/dist-packages/font_source_sans_pro/files/SourceSansPro-Black.ttf", 16)
+font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 20)
+font_small = ImageFont.truetype("usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 14)
 btn.set_pixel(0, 0, 0)
 
 is_busy = False
@@ -47,17 +50,25 @@ wth_summary_map = {
 }
 
 def blink():
+	logging.debug("blink")
 	btn.set_pixel(0,127,0)
 	time.sleep(0.1)
 	btn.set_pixel(0,0,0)
+	logging.debug("blink done")
 
-def text(x, y, text, font):		
-	if(x < 0):
-		[w, h] = font.getsize(text);
-		x = (ink.WIDTH / 2) - (w / 2)	
-
+def text(x, y, text, font):
+	logging.debug("text: " + text)
+	if x < 0:
+		logging.debug("text0.5")
+		[l, t, r, b] = font.getbbox(text);
+		w = r - l
+		logging.debug("text0.51")
+		x = (ink.WIDTH / 2) - (w / 2)
+		logging.debug("text0.52")	
+	logging.debug("text1")
 	draw.text((x, y), text, ink.BLACK, font=font)
-	#print("[" + str(x) + "," +str(y) + "] " + text);
+	#logging.debug("[" + str(x) + "," +str(y) + "] " + text);
+	logging.debug("text done")
 
 def winfo():
 	out = os.popen('echo `iwconfig wlan0 | egrep "ESSID|Link Quality"`').read()
@@ -66,7 +77,7 @@ def winfo():
 	n = int(m.group(2))
 	d = int(m.group(3))
 	s = int(interp(n, [0, d], [0, 100]))
-	#print(id + " " + str(n) + "/" + str(d) + " " + str(s) + "/" + str(width))
+	#logging.debug(id + " " + str(n) + "/" + str(d) + " " + str(s) + "/" + str(width))
 	return [id, s]
 
 def get_request(url):
@@ -91,32 +102,42 @@ def weather(coords):
 	return weather
 
 def busy():
+	logging.debug("busy")
 	global is_busy
-	if(is_busy):
+	if is_busy:
 		return True
 	else:
 		is_busy = True
 		return False
 
 def free():
+	logging.debug("free")
 	global is_busy
-	if(is_busy):
+	if is_busy:
 		is_busy = False
 		return False
 	else:
 		return True
+		
 def do(func):
+	logging.debug("do")
 	global last_func
-	if(busy()):
-		#print("busy: " + func.__name__)
+	if busy():
+		logging.debug("busy: " + func.__name__)
 		return
-	#print("free: " + func.__name__)
+	logging.debug("free: " + func.__name__)
 	blink()
+	logging.debug("set pixel on")
 	btn.set_pixel(0, 0, 127)
+	logging.debug("assign to last func")
 	last_func = func
+	logging.debug("call funk")
 	func()
+	logging.debug("set pixel off")
 	btn.set_pixel(0, 0, 0)
+	logging.debug("set to free")
 	free()
+	logging.debug("do done")
 	
 def show():
 	ink.set_image(img)
@@ -130,6 +151,7 @@ def blank():
 	show()
 
 def clock():
+	logging.debug("clock")
 	clear()
 	now = localtime()
 	text(-1, 0, strftime("%a %b %d %Y", now), font_large)
@@ -144,19 +166,21 @@ def clock():
 	else:		
 		text(-1, 23*3, str(wth["temperature"]) + "'F " + wth["short_summary"], font_large)
 	show()
+	logging.debug("clock done")
 
 def info():
+	logging.debug("info")
 	clear()
 	temp = os.popen("vcgencmd measure_temp").read()
 	tm = re.search("temp=([\d]*).?([\d]*)'C", temp)
 	tc = int(tm.group(1))
 	tf = tc * (9 / 5) + 32
-	text(0, 0, "temp: " + str(tf) + "'F / " + str(tc) + "'C", font_small)
+	text(0, 0, "temp: " + str(int(tf)) + "'F / " + str(int(tc)) + "'C", font_small)
 
 	volt = os.popen("vcgencmd measure_volts").read()
 	vm = re.search("volt=([\d]*).?([\d]*)V", volt)
 	v = float(vm.group(1) + "." + vm.group(2))
-	text(0, 16, "volts: " + str(v) + "v", font_small)
+	text(0, 16, "volt: " + str(v) + "v", font_small)
 
 	stor = os.popen("echo `df -h | grep /dev/root | awk '{ print $4\"/\"$2 }'`").read()
 	text(0, 16*2, "disk: " + str(stor), font_small)
@@ -164,55 +188,57 @@ def info():
 	up = os.popen("uptime").read()
 	um1 = re.search("[\d:]*\s+up\s+(\d+):(\d+)", up)
 	um2 = re.search("[\d:]*\s+up\s+(\d*)\s+(\w*),", up)
-	if(um2 and um2.group(1) and um2.group(2)):
-		text(0, 16*3, "up: " + str(um2.group(1) + " " + um2.group(2)), font_small)
-	elif(um1 and um1.group(1) and um1.group(2)):
+	if um2 and um2.group(1) and um2.group(2):
+		text(0, 16*3, "  up: " + str(um2.group(1) + " " + um2.group(2)), font_small)
+	elif um1 and um1.group(1) and um1.group(2):
 		m = um1.group(1)
 		h = um1.group(2)
 		ms = "min"
 		hs = "hr"
-		if(m > 1):
+		if int(m) > 1:
 			ms = "mins"
-		if(h > 1):
+		if int(h) > 1:
 			hs = "hrs"
-		text(0, 16*3, "up: " + str(h) + " " + hs + " " + str(m) + " " + ms, font_small)
+		text(0, 16*3, "  up: " + str(h) + " " + hs + " " + str(m) + " " + ms, font_small)
 	else:
-		text(0, 16*3, "up: (error)", font_small)
+		text(0, 16*3, "  up: (error)", font_small)
 
 	[wfid, wfsig] = winfo()
 	myip = os.popen('echo `ifconfig | grep -A1 wlan0` | awk \'{print $6}\'').read()
 	text(0, 16*4,  "wifi: " + wfid + " (" + str(wfsig) + "%)", font_small)
-	text(0, 16*5, "ip: " +  myip, font_small)
+	text(0, 16*5, "  ip: " +  myip, font_small)
 	show()
+	logging.debug("info done")
 
 def image():
-	global zc, zz, img, draw
-	img = Image.new("P", (ink.WIDTH, ink.HEIGHT))
-	draw = ImageDraw.Draw(img)
+	logging.debug("image")
+	global zc, zz #, img, draw
+	#img = Image.new("P", (ink.WIDTH, ink.HEIGHT))
+	#draw = ImageDraw.Draw(img)
 	i = random.choice([1, 2, 4, 8, 16, 32, 52])
-	#i = random.randint(1, 52)
 	t = 212
 	r = 104
-	for a in range(0, (t/i)+1):
-		x1 = (a*i)+1
+	for a in range(0, int(t/i)+1):
+		x1 = a*i+1
 		x2 = x1 + i
-		if(x2 > t):
+		if x2 > t:
 			x2 = x1 + t - t/i
-		for b in range(0, (104/i)+1):
-			y1 = (b*i)+1
+		for b in range(0, int(r/i)+1):
+			y1 = b*i+1
 			y2 = y1 + i
-			if(y2 > r):
+			if y2 > r:
 				y2 = y1 + r - r/i
-			color = random.choice([ink.WHITE, ink.ink, BLACK.draw])
-			RED.rectangle([x1, y1, x2, y2], fill=color, outline=None, width=0)
-
-			show()
+			color = random.choice([ink.WHITE, ink.BLACK, ink.RED])
+			draw.rectangle([x1, y1, x2, y2], fill=color, outline=None, width=0)
+	show()
+	logging.debug("image done")
 
 def mandel():
+	logging.debug("mandel")
 	global img, draw
 	palette = [ink.WHITE, ink.RED, ink.BLACK]
 	img = Image.new("P", (ink.WIDTH, ink.HEIGHT))
-	draw = ImageDraw.Draw(m)
+	draw = ImageDraw.Draw(img)
 	h = ink.HEIGHT
 	w = ink.WIDTH
 	for py in range(h):
@@ -238,7 +264,8 @@ def mandel():
 				draw.point([px, py], fill=ink.BLACK)			
 			else:
 				draw.point([px, py], fill=ink.WHITE)
-				show()
+	show()
+	logging.debug("mandel done")
 
 @btn.on_hold(btn.BUTTON_E, hold_time=1)
 def handler(button):
@@ -257,12 +284,15 @@ def handler(button):
 	do(mandel)
 
 try:
+	logging.debug("try block")
 	#do(clock)
 	#do(image)
 	#do(mandel)
 	do(info)
 	time.sleep(300)
+	logging.debug("while check")
 	while True:
+		logging.debug("while block")
 		do(last_func)
 		time.sleep(300)
 	#signal.pause()
