@@ -3,7 +3,7 @@
 
 import time
 from inky import InkyPHAT
-from PIL import Image, ImageDraw, ImageFont
+from Pillow import Image, ImageDraw, ImageFont
 import inkyphat
 from time import localtime, strftime
 import buttonshim as btn
@@ -48,8 +48,8 @@ wth_summary_map = {
 
 def blink():
 	btn.set_pixel(0,127,0)
-        time.sleep(0.1)
-        btn.set_pixel(0,0,0)
+	time.sleep(0.1)
+	btn.set_pixel(0,0,0)
 
 def text(x, y, text, font):		
 	if(x < 0):
@@ -73,7 +73,7 @@ def get_request(url):
 	res = requests.get(url)
 	if res.status_code != 200:
 		return None
-       	soup = BeautifulSoup(res.content, "lxml")
+	soup = BeautifulSoup(res.content, "lxml")
 	return soup
 
 def weather(coords):
@@ -203,17 +203,17 @@ def image():
 			y2 = y1 + i
 			if(y2 > r):
 				y2 = y1 + r - r/i
-			color = random.choice([ink.WHITE, ink.BLACK, ink.RED])
-			draw.rectangle([x1, y1, x2, y2], fill=color, outline=None, width=0)
+			color = random.choice([ink.WHITE, ink.ink, BLACK.draw])
+			RED.rectangle([x1, y1, x2, y2], fill=color, outline=None, width=0)
 
-        show()
+			show()
 
 def mandel():
-	global img
+	global img, draw
 	palette = [ink.WHITE, ink.RED, ink.BLACK]
 	img = Image.new("P", (ink.WIDTH, ink.HEIGHT))
 	draw = ImageDraw.Draw(m)
-    	h = ink.HEIGHT
+	h = ink.HEIGHT
 	w = ink.WIDTH
 	for py in range(h):
 		for px in range(w):
@@ -238,7 +238,7 @@ def mandel():
 				draw.point([px, py], fill=ink.BLACK)			
 			else:
 				draw.point([px, py], fill=ink.WHITE)
-        show()
+				show()
 
 @btn.on_hold(btn.BUTTON_E, hold_time=1)
 def handler(button):
